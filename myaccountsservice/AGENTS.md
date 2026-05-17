@@ -12,6 +12,10 @@ Para las relaciones @OneToMany y @ManyToOne  por favor usa un objectMapper
 
 Para el manytomany es con jointable.
 
+Las relaciones @OneToMany y @OneToOne deben ser bidireccionales, es decir:
+- Si hay un @OneToMany en un lado, debe haber un @ManyToOne inverso en la otra entidad
+- Si hay un @OneToOne, debe haber un @OneToOne(mappedBy) inverso en la otra entidad
+
 Relacion de datos usando dbdiagram.io
 
 ```dbml

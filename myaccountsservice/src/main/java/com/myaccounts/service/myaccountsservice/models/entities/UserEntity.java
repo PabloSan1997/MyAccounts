@@ -26,8 +26,9 @@ public class UserEntity {
 
     private String nickname;
 
-    @Column(name = "id_init_capital")
-    private Long idInitCapital;
+    @OneToOne
+    @JoinColumn(name = "id_init_capital")
+    private InitCapitalEntity initCapital;
 
     @ManyToMany
     @JoinTable(
@@ -40,4 +41,8 @@ public class UserEntity {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LoginEntity> logins;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<PeriodEntity> periods = new java.util.ArrayList<>();
 }
