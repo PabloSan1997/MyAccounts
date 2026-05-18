@@ -158,6 +158,9 @@ public class PeriodServiceImp implements PeriodService {
         getPeriodEntity(periodId);
         FixedCostEntity entity = fixedCostRepository.findById(fixedCostId)
                 .orElseThrow(() -> new MyBadRequestException("Fixed cost not found"));
+        if (!entity.getPeriod().getId().equals(periodId)) {
+            throw new MyBadRequestException("Fixed cost does not belong to this period");
+        }
         if (dto.getValue() != null) entity.setValue(dto.getValue());
         if (dto.getTitle() != null) entity.setTitle(dto.getTitle());
         entity = fixedCostRepository.save(entity);
@@ -169,6 +172,9 @@ public class PeriodServiceImp implements PeriodService {
         getPeriodEntity(periodId);
         FixedCostEntity entity = fixedCostRepository.findById(fixedCostId)
                 .orElseThrow(() -> new MyBadRequestException("Fixed cost not found"));
+        if (!entity.getPeriod().getId().equals(periodId)) {
+            throw new MyBadRequestException("Fixed cost does not belong to this period");
+        }
         fixedCostRepository.delete(entity);
     }
 
@@ -190,6 +196,9 @@ public class PeriodServiceImp implements PeriodService {
         getPeriodEntity(periodId);
         FixedIncomeEntity entity = fixedIncomeRepository.findById(fixedIncomeId)
                 .orElseThrow(() -> new MyBadRequestException("Fixed income not found"));
+        if (!entity.getPeriod().getId().equals(periodId)) {
+            throw new MyBadRequestException("Fixed income does not belong to this period");
+        }
         if (dto.getValue() != null) entity.setValue(dto.getValue());
         if (dto.getTitle() != null) entity.setTitle(dto.getTitle());
         entity = fixedIncomeRepository.save(entity);
@@ -201,6 +210,9 @@ public class PeriodServiceImp implements PeriodService {
         getPeriodEntity(periodId);
         FixedIncomeEntity entity = fixedIncomeRepository.findById(fixedIncomeId)
                 .orElseThrow(() -> new MyBadRequestException("Fixed income not found"));
+        if (!entity.getPeriod().getId().equals(periodId)) {
+            throw new MyBadRequestException("Fixed income does not belong to this period");
+        }
         fixedIncomeRepository.delete(entity);
     }
 
@@ -222,6 +234,9 @@ public class PeriodServiceImp implements PeriodService {
         getPeriodEntity(periodId);
         VariableCostEntity entity = variableCostRepository.findById(variableCostId)
                 .orElseThrow(() -> new MyBadRequestException("Variable cost not found"));
+        if (!entity.getPeriod().getId().equals(periodId)) {
+            throw new MyBadRequestException("Variable cost does not belong to this period");
+        }
         if (dto.getValue() != null) entity.setValue(dto.getValue());
         if (dto.getTitle() != null) entity.setTitle(dto.getTitle());
         entity = variableCostRepository.save(entity);
@@ -233,6 +248,9 @@ public class PeriodServiceImp implements PeriodService {
         getPeriodEntity(periodId);
         VariableCostEntity entity = variableCostRepository.findById(variableCostId)
                 .orElseThrow(() -> new MyBadRequestException("Variable cost not found"));
+        if (!entity.getPeriod().getId().equals(periodId)) {
+            throw new MyBadRequestException("Variable cost does not belong to this period");
+        }
         variableCostRepository.delete(entity);
     }
 
@@ -254,6 +272,9 @@ public class PeriodServiceImp implements PeriodService {
         getPeriodEntity(periodId);
         VariableIncomeEntity entity = variableIncomeRepository.findById(variableIncomeId)
                 .orElseThrow(() -> new MyBadRequestException("Variable income not found"));
+        if (!entity.getPeriod().getId().equals(periodId)) {
+            throw new MyBadRequestException("Variable income does not belong to this period");
+        }
         if (dto.getValue() != null) entity.setValue(dto.getValue());
         if (dto.getTitle() != null) entity.setTitle(dto.getTitle());
         entity = variableIncomeRepository.save(entity);
@@ -265,6 +286,9 @@ public class PeriodServiceImp implements PeriodService {
         getPeriodEntity(periodId);
         VariableIncomeEntity entity = variableIncomeRepository.findById(variableIncomeId)
                 .orElseThrow(() -> new MyBadRequestException("Variable income not found"));
+        if (!entity.getPeriod().getId().equals(periodId)) {
+            throw new MyBadRequestException("Variable income does not belong to this period");
+        }
         variableIncomeRepository.delete(entity);
     }
 

@@ -9,6 +9,7 @@ import com.myaccounts.service.myaccountsservice.models.dtos.ErrorDto;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -45,7 +46,8 @@ public class ExceptionController {
 
     @ExceptionHandler({
         MyBadRequestException.class,
-        MethodArgumentNotValidException.class
+        MethodArgumentNotValidException.class,
+        HttpMessageNotReadableException.class
     })
     public ResponseEntity<?> badRequest(Exception e) {
         ErrorDto errorDto = new ErrorDto(HttpStatus.BAD_REQUEST, e.getMessage());

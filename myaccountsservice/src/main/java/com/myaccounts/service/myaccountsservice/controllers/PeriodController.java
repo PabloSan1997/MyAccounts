@@ -6,6 +6,7 @@ import com.myaccounts.service.myaccountsservice.models.dtos.PeriodDetailDto;
 import com.myaccounts.service.myaccountsservice.models.dtos.PeriodSummaryDto;
 import com.myaccounts.service.myaccountsservice.models.dtos.PeriodsResponseDto;
 import com.myaccounts.service.myaccountsservice.services.PeriodService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -40,12 +41,12 @@ public class PeriodController {
 
     // Fixed Costs
     @PostMapping("/{id}/costfixed")
-    public ResponseEntity<ItemDto> createFixedCost(@PathVariable Long id, @RequestBody ItemRequestDto dto) {
+    public ResponseEntity<ItemDto> createFixedCost(@PathVariable Long id, @Valid @RequestBody ItemRequestDto dto) {
         return ResponseEntity.ok(periodService.createFixedCost(id, dto));
     }
 
     @PatchMapping("/{id}/costfixed/{costId}")
-    public ResponseEntity<ItemDto> updateFixedCost(@PathVariable Long id, @PathVariable Long costId, @RequestBody ItemRequestDto dto) {
+    public ResponseEntity<ItemDto> updateFixedCost(@PathVariable Long id, @PathVariable Long costId, @Valid @RequestBody ItemRequestDto dto) {
         return ResponseEntity.ok(periodService.updateFixedCost(id, costId, dto));
     }
 
@@ -57,12 +58,12 @@ public class PeriodController {
 
     // Fixed Incomes
     @PostMapping("/{id}/incomefixed")
-    public ResponseEntity<ItemDto> createFixedIncome(@PathVariable Long id, @RequestBody ItemRequestDto dto) {
+    public ResponseEntity<ItemDto> createFixedIncome(@PathVariable Long id, @Valid @RequestBody ItemRequestDto dto) {
         return ResponseEntity.ok(periodService.createFixedIncome(id, dto));
     }
 
     @PatchMapping("/{id}/incomefixed/{incomeId}")
-    public ResponseEntity<ItemDto> updateFixedIncome(@PathVariable Long id, @PathVariable Long incomeId, @RequestBody ItemRequestDto dto) {
+    public ResponseEntity<ItemDto> updateFixedIncome(@PathVariable Long id, @PathVariable Long incomeId, @Valid @RequestBody ItemRequestDto dto) {
         return ResponseEntity.ok(periodService.updateFixedIncome(id, incomeId, dto));
     }
 
@@ -74,12 +75,12 @@ public class PeriodController {
 
     // Variable Costs
     @PostMapping("/{id}/costvariable")
-    public ResponseEntity<ItemDto> createVariableCost(@PathVariable Long id, @RequestBody ItemRequestDto dto) {
+    public ResponseEntity<ItemDto> createVariableCost(@PathVariable Long id, @Valid @RequestBody ItemRequestDto dto) {
         return ResponseEntity.ok(periodService.createVariableCost(id, dto));
     }
 
     @PatchMapping("/{id}/costvariable/{costId}")
-    public ResponseEntity<ItemDto> updateVariableCost(@PathVariable Long id, @PathVariable Long costId, @RequestBody ItemRequestDto dto) {
+    public ResponseEntity<ItemDto> updateVariableCost(@PathVariable Long id, @PathVariable Long costId, @Valid @RequestBody ItemRequestDto dto) {
         return ResponseEntity.ok(periodService.updateVariableCost(id, costId, dto));
     }
 
@@ -91,12 +92,12 @@ public class PeriodController {
 
     // Variable Incomes
     @PostMapping("/{id}/incomevariable")
-    public ResponseEntity<ItemDto> createVariableIncome(@PathVariable Long id, @RequestBody ItemRequestDto dto) {
+    public ResponseEntity<ItemDto> createVariableIncome(@PathVariable Long id, @Valid @RequestBody ItemRequestDto dto) {
         return ResponseEntity.ok(periodService.createVariableIncome(id, dto));
     }
 
     @PatchMapping("/{id}/incomevariable/{incomeId}")
-    public ResponseEntity<ItemDto> updateVariableIncome(@PathVariable Long id, @PathVariable Long incomeId, @RequestBody ItemRequestDto dto) {
+    public ResponseEntity<ItemDto> updateVariableIncome(@PathVariable Long id, @PathVariable Long incomeId, @Valid @RequestBody ItemRequestDto dto) {
         return ResponseEntity.ok(periodService.updateVariableIncome(id, incomeId, dto));
     }
 

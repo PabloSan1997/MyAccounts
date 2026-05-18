@@ -936,7 +936,7 @@ public class ExceptionController {
     })
     public ResponseEntity<?> unauthorized(Exception e) {
         ErrorDto errorDto = new ErrorDto(HttpStatus.UNAUTHORIZED, e.getMessage());
-        
+
         if (e instanceof ReLodingException) {
             ResponseCookie cookie = ResponseCookie.from("the_cookie", "")
                     .sameSite(component.getSameStite())
@@ -953,11 +953,12 @@ public class ExceptionController {
 
     @ExceptionHandler({
         MyBadRequestException.class,
-        MethodArgumentNotValidException.class
+        MethodArgumentNotValidException.class,
+        HttpMessageNotReadableException.class
     })
     public ResponseEntity<?> badRequest(Exception e) {
         ErrorDto errorDto = new ErrorDto(HttpStatus.BAD_REQUEST, e.getMessage());
-        
+
         if(e instanceof MethodArgumentNotValidException err){
             StringBuilder stringBuilder = new StringBuilder();
             for(FieldError field: err.getFieldErrors()){
@@ -971,6 +972,57 @@ public class ExceptionController {
     }
 }
 ```
+
+### Paso 13: Validaciones de DTOs
+
+#### ItemRequestDto.java (para costos e ingresos)
+```java
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ItemRequestDto {
+    @NotNull(message = "Value is required")
+    private BigDecimal value;
+
+    @NotBlank(message = "Title is required")
+    @Size(max = 60, message = "Title must not exceed 60 characters")
+    private String title;
+}
+```
+
+#### InitCapitalPatchDto.java
+```java
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class InitCapitalPatchDto {
+    @NotNull(message = "initValue is required")
+    private BigDecimal initValue;
+}
+```
+
+### Paso 14: Validación de Pertenencia a Período
+
+Al actualizar o eliminar costos/ingresos (fixed/variable), se debe verificar que el recurso pertenezca al período especificado:
+
+```java
+@Override
+public ItemDto updateFixedCost(Long periodId, Long fixedCostId, ItemRequestDto dto) {
+    getPeriodEntity(periodId);
+    FixedCostEntity entity = fixedCostRepository.findById(fixedCostId)
+            .orElseThrow(() -> new MyBadRequestException("Fixed cost not found"));
+    if (!entity.getPeriod().getId().equals(periodId)) {
+        throw new MyBadRequestException("Fixed cost does not belong to this period");
+    }
+    // ... actualiza el recurso
+}
+```
+
+Esto aplica para:
+- updateFixedCost / deleteFixedCost
+- updateFixedIncome / deleteFixedIncome
+- updateVariableCost / deleteVariableCost
+- updateVariableIncome / deleteVariableIncome
 
 ---
 

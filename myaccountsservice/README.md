@@ -4,26 +4,29 @@ A personal finance management REST API built with Spring Boot.
 
 ## Overview
 
-MyAccounts is a backend service designed to help users track their personal finances. It allows managing multiple accounting periods, tracking fixed/variable income and expenses, and monitoring initial capital.
+MyAccounts is a backend service designed to help users track their personal finances. It allows managing multiple accounting periods (30 days each), tracking fixed/variable income and expenses, and monitoring initial capital with real-time balance calculations.
 
 ## Features
 
 - **User Authentication**: Double JWT system (Access Token + Refresh Token)
-- **Period Management**: Create and manage accounting periods
+- **Period Management**: Create/delete accounting periods (30-day duration)
 - **Financial Tracking**:
-  - Fixed income and costs
+  - Fixed income and costs (copied to new periods automatically)
   - Variable income and costs
   - Initial capital tracking
-- **Role-based Access**: User roles support
+- **Real-time Calculations**: Total incomes, costs, and balance per period
+- **Data Validation**: Input validation and ownership verification
+- **Role-based Access**: USER role support
 - **RESTful API**: Clean and consistent API design
 
 ## Tech Stack
 
 - **Framework**: Spring Boot 3.x
-- **Security**: Spring Security with JWT
-- **Database**: JPA (Hibernate) - Compatible with PostgreSQL/MySQL
+- **Security**: Spring Security with JWT (BCrypt password encoding)
+- **Database**: JPA (Hibernate) - PostgreSQL/MySQL compatible
 - **Build Tool**: Maven
 - **Language**: Java 17+
+- **Validation**: Bean Validation (Jakarta)
 
 ## Project Structure
 
@@ -33,6 +36,8 @@ src/main/java/com/myaccounts/service/myaccountsservice/
 │   └── PropsSesionComponent.java
 ├── controllers/         # REST controllers
 │   ├── UserController.java
+│   ├── InitCapitalController.java
+│   ├── PeriodController.java
 │   └── ExceptionController.java
 ├── exceptions/          # Custom exceptions
 │   ├── RefreshException.java
@@ -47,7 +52,14 @@ src/main/java/com/myaccounts/service/myaccountsservice/
 │   │   ├── LoginClaimsDto.java
 │   │   ├── UserInfoDto.java
 │   │   ├── RegisterDto.java
-│   │   └── ErrorDto.java
+│   │   ├── ErrorDto.java
+│   │   ├── InitCapitalDto.java
+│   │   ├── InitCapitalPatchDto.java
+│   │   ├── ItemDto.java
+│   │   ├── ItemRequestDto.java
+│   │   ├── PeriodDetailDto.java
+│   │   ├── PeriodSummaryDto.java
+│   │   └── PeriodsResponseDto.java
 │   └── entities/        # JPA Entities
 │       ├── UserEntity.java
 │       ├── RoleEntity.java
@@ -61,7 +73,13 @@ src/main/java/com/myaccounts/service/myaccountsservice/
 ├── repositories/         # Data access layer
 │   ├── UserRepository.java
 │   ├── RoleRepository.java
-│   └── LoginRepository.java
+│   ├── LoginRepository.java
+│   ├── PeriodRepository.java
+│   ├── InitCapitalRepository.java
+│   ├── FixedCostRepository.java
+│   ├── FixedIncomeRepository.java
+│   ├── VariableCostRepository.java
+│   └── VariableIncomeRepository.java
 ├── security/            # Security configuration
 │   ├── SecurityConfig.java
 │   └── filter/
@@ -69,10 +87,14 @@ src/main/java/com/myaccounts/service/myaccountsservice/
 └── services/            # Business logic
     ├── JwtService.java
     ├── UserService.java
-    ├── UserDetailsServiceImp.java
+    ├── InitCapitalService.java
+    ├── PeriodService.java
     └── imp/
         ├── JwtServiceImp.java
-        └── UserServiceImp.java
+        ├── UserServiceImp.java
+        ├── UserDetailsServiceImp.java
+        ├── InitCapitalServiceImp.java
+        └── PeriodServiceImp.java
 ```
 
 ## Database Schema
@@ -155,12 +177,13 @@ This project uses a **Double JWT** authentication system:
 
 ### Auth Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/user/login` | User login |
-| POST | `/api/user/refresh` | Refresh access token |
-| POST | `/api/user/logout` | User logout |
-| GET | `/api/user/userinfo` | Get user info (requires auth) |
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/api/user/login` | User login | No |
+| POST | `/api/user/register` | User registration | No |
+| POST | `/api/user/refresh` | Refresh access token | No |
+| POST | `/api/user/logout` | User logout | No |
+| GET | `/api/user/userinfo` | Get user info | Yes |
 
 ### Login Flow
 
@@ -168,6 +191,67 @@ This project uses a **Double JWT** authentication system:
 2. Server returns access token in body + login token as HTTP-only cookie
 3. Include access token in `Authorization` header for protected requests
 4. When access token expires, call `/api/user/refresh` to get new token
+
+## API Endpoints
+
+### Initial Capital
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/api/initCapital` | Get initial capital | Yes |
+| PATCH | `/api/initCapital` | Update initial capital | Yes |
+
+### Periods
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/api/periods` | Get all periods with summary | Yes |
+| GET | `/api/periods/{id}` | Get period details | Yes |
+| POST | `/api/periods` | Create new period | Yes |
+| DELETE | `/api/periods/{id}` | Delete period (only latest) | Yes |
+
+### Fixed Costs
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/api/periods/{id}/costfixed` | Create fixed cost | Yes |
+| PATCH | `/api/periods/{id}/costfixed/{costId}` | Update fixed cost | Yes |
+| DELETE | `/api/periods/{id}/costfixed/{costId}` | Delete fixed cost | Yes |
+
+### Fixed Income
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/api/periods/{id}/incomefixed` | Create fixed income | Yes |
+| PATCH | `/api/periods/{id}/incomefixed/{incomeId}` | Update fixed income | Yes |
+| DELETE | `/api/periods/{id}/incomefixed/{incomeId}` | Delete fixed income | Yes |
+
+### Variable Costs
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/api/periods/{id}/costvariable` | Create variable cost | Yes |
+| PATCH | `/api/periods/{id}/costvariable/{costId}` | Update variable cost | Yes |
+| DELETE | `/api/periods/{id}/costvariable/{costId}` | Delete variable cost | Yes |
+
+### Variable Income
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/api/periods/{id}/incomevariable` | Create variable income | Yes |
+| PATCH | `/api/periods/{id}/incomevariable/{incomeId}` | Update variable income | Yes |
+| DELETE | `/api/periods/{id}/incomevariable/{incomeId}` | Delete variable income | Yes |
+
+## Input Validation
+
+All POST and PATCH endpoints use Bean Validation:
+- `ItemRequestDto`: `value` (required, BigDecimal), `title` (required, max 60 chars)
+- `InitCapitalPatchDto`: `initValue` (required, BigDecimal)
+- Invalid requests return 400 Bad Request with validation error details
+
+## Data Ownership
+
+All endpoints verify that resources belong to the authenticated user. Attempting to access or modify another user's data returns 400 Bad Request.
 
 ## Configuration
 

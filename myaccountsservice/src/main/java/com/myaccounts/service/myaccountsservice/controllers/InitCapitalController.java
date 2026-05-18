@@ -3,6 +3,7 @@ package com.myaccounts.service.myaccountsservice.controllers;
 import com.myaccounts.service.myaccountsservice.models.dtos.InitCapitalDto;
 import com.myaccounts.service.myaccountsservice.models.dtos.InitCapitalPatchDto;
 import com.myaccounts.service.myaccountsservice.services.InitCapitalService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +21,7 @@ public class InitCapitalController {
     }
 
     @PatchMapping
-    public ResponseEntity<InitCapitalDto> patchInitCapital(@RequestBody InitCapitalPatchDto dto) {
+    public ResponseEntity<InitCapitalDto> patchInitCapital(@Valid @RequestBody InitCapitalPatchDto dto) {
         return ResponseEntity.ok(initCapitalService.patchInitCapital(dto));
     }
 }
