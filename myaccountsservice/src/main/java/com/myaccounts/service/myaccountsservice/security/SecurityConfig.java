@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -49,16 +50,13 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable())
+        http.csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(a -> a
-                .requestMatchers(
-                    HttpMethod.POST,
-                    "/api/user/login",
-                    "/api/user/register",
-                    "/api/user/refresh",
-                    "/api/user/logout"
-                ).permitAll()
-                .requestMatchers("/api/user/userinfo").hasRole("USER")
+                .requestMatchers(HttpMethod.POST, "/api/user/login", "/api/user/register", "/api/user/refresh", "/api/user/logout").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/user/userinfo", "/api/initCapital", "/api/periods", "/api/periods/*").hasRole("USER")
+                .requestMatchers(HttpMethod.PATCH, "/api/initCapital", "/api/periods/*/costfixed/*", "/api/periods/*/incomefixed/*", "/api/periods/*/costvariable/*", "/api/periods/*/incomevariable/*").hasRole("USER")
+                .requestMatchers(HttpMethod.POST, "/api/periods", "/api/periods/*/costfixed", "/api/periods/*/incomefixed", "/api/periods/*/costvariable", "/api/periods/*/incomevariable").hasRole("USER")
+                .requestMatchers(HttpMethod.DELETE, "/api/periods/*", "/api/periods/*/costfixed/*", "/api/periods/*/incomefixed/*", "/api/periods/*/costvariable/*", "/api/periods/*/incomevariable/*").hasRole("USER")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(new JwtValidationTokenFilter(authenticationManager(), jwtService),

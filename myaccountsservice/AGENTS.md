@@ -54,6 +54,7 @@ Table fixed_costs{
   id_period bigint
   date date
   value bigdecimal
+  title varchar(60)
 }
 
 Table fixed_income{
@@ -61,6 +62,7 @@ Table fixed_income{
   id_period bigint
   date date
   value bigdecimal
+  title varchar(60)
 }
 
 Table variable_costs{
@@ -68,6 +70,7 @@ Table variable_costs{
   id_period bigint
   date date
   value bigdecimal
+  title varchar(60)
 }
 
 Table variable_income{
@@ -75,6 +78,7 @@ Table variable_income{
   id_period bigint
   date date
   value bigdecimal
+  title varchar(60)
 }
 
 REF : the_user.id < user_role.id_user
@@ -989,3 +993,283 @@ public class ExceptionController {
    - `loginTime`: Duración del login token (default 7 días)
 6. **Keys JWT**: Deben ser mínimo 256 bits (32 bytes) y codificadas en Base64.
 7. **Roles**: Se almacenan con prefijo "ROLE_" en los authorities.
+
+## Logica de negocio
+
+Tendra dos paginas, en la primera solo debe mostrar una lista resumida de los periodos y el capital inicial.
+
+Los dos gets principales serían con su JSON
+
+- Capital inicial:
+
+Con role USER
+
+```http request
+GET /api/initCapital
+```
+
+```JSON
+{
+   "initValue": "number",
+   "created": "instant"
+}
+```
+
+- Periodos
+
+Con role USER
+
+```http request
+GET /api/periods
+```
+
+
+```JSON
+{
+   "periods": [
+      {
+         "id": "long",
+         "created": "string",
+         "totalIncomes": "number",
+         "totalCost": "number",
+         "total": "number"
+      }
+   ]
+}
+```
+
+El "created" es un string que tendra como nombre los dos meses y año en el que transcurre ese periodo (ejemplo: Febrero (2026) - Marzo (2026)) y cada periodo durará 30 dias.
+Por lo que el si se crea un nuevo periodo esto se debe de calcular en el servicio.
+
+Para "totalIncomes" y "totalCost" es la suma total de los incomes y costs de solo ese periodo. Esto se debe calcular en tiempo real del get ya que no estan en la base de datos.
+
+Para "total" tambien se calcula con cada get y la operacion seria la siguiente "total" = "initCapital" + "totalIncomes"(actual) + totalIncomes(sumado de todos los periodos anteriores) - "totalCost"(actual) - "totalCost"(sumado de todos los periodos anteriores).
+
+Obviamente cada usuario solo puede obtener sus propios periodos, no el de los demas, esta escrictamente prohibido que el usuario pueda acceder a periodos e init capital que no le pertenecen.
+
+Para la segunda pagina es donde se verá el desglose de los periodos.
+
+Por lo que seará un solo GET que se llamará a un periodo por ID, recuerda que un usario no puede llamar un periodo que no le pertenezca.
+
+En el servicio se tendria que buscar todos los costos e inversiones por el id del periodo y devolver lo siguiente.
+
+- Llamar periodo por id
+
+Con role USER
+
+```http request
+GET /api/periods/{id}
+```
+
+```json
+{
+  "id": "long",
+  "created": "string",
+   "variableCosts": [
+      {
+         "id": "long",
+         "date": "instant",
+         "value": "number",
+         "title": "string"
+      }
+   ],
+   "variableIncomes": [
+      {
+         "id": "long",
+         "date": "instant",
+         "value": "number",
+         "title": "string"
+      }
+   ],
+
+   "fixedCosts": [
+      {
+         "id": "long",
+         "date": "instant",
+         "value": "number",
+         "title": "string"
+      }
+   ],
+   "fixedIncomes": [
+      {
+         "id": "long",
+         "date": "instant",
+         "value": "number",
+         "title": "string"
+      }
+   ]
+}
+```
+
+Para las solicitudes POST, PATCH y delete sera de la siguiente forma
+
+Para "initCapital" no habrá post, solo patch, el problema es que si hay un get para llamar al init capital (como se vio anteriormete) y no existe, se debe crear uno con el valor 0.
+
+el patch seria con rol user:
+
+```http request
+PATCH /api/initCapital
+```
+
+Con body
+
+```JSON
+{
+   "initValue": "number"
+}
+```
+
+y el response es el mismo que el del get. recuerda que el initcapital se llama con la relacion uno a uno que tiene con el usuario, ahí lo llamas y se edita.
+
+Para los periodos, solo se puede crear y borrar, con un boton.
+
+Con role USER
+
+```http request
+POST /api/periods
+```
+
+con respuesta
+
+```JSON
+ {
+         "id": "long",
+         "created": "string",
+         "totalIncomes": "number",
+         "totalCost": "number",
+         "total": "number"
+      }
+```
+
+Con role USER
+
+```http request
+DELETE /api/periods/{id}
+```
+
+recuerda que el usuario solo puede borrar periodos que le pertenecen.
+
+Cuando se crea un nuevo periodo recuerda que el created se calcula antes de guardarlo en la base de datos de la forma como se explicó anteriormente
+
+Solo se pueden borrar el periodo mas nuevo, si el periodo tiene un periodo mas nuevo, ya no se puede borrar, al borrar un periodo igual se borran todos sus costos e inversiones.
+
+Cuando se crea un periodo nuevo, se deben crear en automatico los mismos costos-inversiones fijos y variables del periodo anterior, ya que por algo son fijos. Y los variables no.
+
+Cada costo y inversion fijo y variable por periodo debe poder ser creado borrado y editado con PATCH.
+
+entonces debe haber un post y delete por cada entity coste inversion de fijos y variable
+
+EL get pues ya se obtiene con periodo por id como se explico anteriormente pero el post patch y delete serian asi
+
+Con role USER
+
+```http request
+POST /api/periods/{id}/incomefixed
+```
+
+```http request
+POST /api/periods/{id}/incomevariable
+```
+
+```http request
+POST /api/periods/{id}/costvariable
+```
+
+```http request
+POST /api/periods/{id}/costfixed
+```
+
+con body
+
+```JSON
+   {
+   "value": "number",
+   "title": "string"
+}
+```
+
+y respuesta
+
+```json
+{
+   "id": "long",
+   "date": "instant",
+   "value": "number",
+   "title": "string"
+}
+```
+
+Con patch seria:
+
+Con role USER
+
+```http request
+PATCH /api/periods/{id}/incomefixed/{idicomefixed}
+```
+
+```http request
+PATCH /api/periods/{id}/incomevariable/{idicomevariable}
+```
+
+```http request
+PATCH /api/periods/{id}/costvariable/{idcostvariable}
+```
+
+```http request
+PATCH /api/periods/{id}/costfixed/{idcostfixed}
+```
+
+con body
+
+```JSON
+   {
+   "value": "number",
+   "title": "string"
+}
+```
+
+y respuesta
+
+```json
+{
+   "id": "long",
+   "date": "instant",
+   "value": "number",
+   "title": "string"
+}
+```
+
+y para delete con role USER
+
+```http request
+DELETE /api/periods/{id}/incomefixed/{idicomefixed}
+```
+
+```http request
+DELETE /api/periods/{id}/incomevariable/{idicomevariable}
+```
+
+```http request
+DELETE /api/periods/{id}/costvariable/{idcostvariable}
+```
+
+```http request
+DELETE /api/periods/{id}/costfixed/{idcostfixed}
+```
+
+Recuerda que un usuario no puede crear, actualizar o borrar datos que le pertenecen a otro usuario.
+
+## Configuración de Seguridad
+
+```java
+a.requestMatchers(HttpMethod.POST, "/api/user/login", "/api/user/register", "/api/user/refresh", "/api/user/logout").permitAll()
+a.requestMatchers(HttpMethod.GET, "/api/user/userinfo", "/api/initCapital", "/api/periods", "/api/periods/*").hasRole("USER")
+.requestMatchers(HttpMethod.PATCH, "/api/initCapital", "/api/periods/*/costfixed/*", "/api/periods/*/incomefixed/*", "/api/periods/*/costvariable/*", "/api/periods/*/incomevariable/*").hasRole("USER")
+.requestMatchers(HttpMethod.POST, "/api/periods", "/api/periods/*/costfixed", "/api/periods/*/incomefixed", "/api/periods/*/costvariable", "/api/periods/*/incomevariable").hasRole("USER")
+.requestMatchers(HttpMethod.DELETE, "/api/periods/*", "/api/periods/*/costfixed/*", "/api/periods/*/incomefixed/*", "/api/periods/*/costvariable/*", "/api/periods/*/incomevariable/*").hasRole("USER")
+```
+
+## Entidades y Campos
+
+Todos los campos de fecha (date, created) usan `Instant` en lugar de `LocalDate`. La entidad InitCapitalEntity tiene `@PrePersist` y `@PreUpdate` que setean `created = Instant.now()`.
+

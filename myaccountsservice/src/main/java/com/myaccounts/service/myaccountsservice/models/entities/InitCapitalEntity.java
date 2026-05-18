@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.Instant;
 
 @Entity
 @Table(name = "the_init_capital")
@@ -23,8 +23,18 @@ public class InitCapitalEntity {
     @Column(precision = 19, scale = 2)
     private BigDecimal initValue;
 
-    private LocalDate created;
+    private Instant created;
 
     @OneToOne(mappedBy = "initCapital")
     private UserEntity user;
+
+    @PrePersist
+    public void prePersist() {
+        this.created = Instant.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.created = Instant.now();
+    }
 }

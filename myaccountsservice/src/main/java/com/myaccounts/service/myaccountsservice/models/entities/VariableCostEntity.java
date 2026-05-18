@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.Instant;
 
 @Entity
 @Table(name = "variable_costs")
@@ -24,8 +24,11 @@ public class VariableCostEntity {
     @JoinColumn(name = "id_period")
     private PeriodEntity period;
 
-    private LocalDate date;
+    private Instant date;
 
     @Column(precision = 19, scale = 2)
     private BigDecimal value;
+
+    @Column(length = 60)
+    private String title;
 }
